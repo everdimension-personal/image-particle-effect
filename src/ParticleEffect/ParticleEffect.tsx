@@ -13,20 +13,21 @@ class Particle {
   vx: number;
   vy: number;
   size: number;
-  private ease: number;
+  private ease = 0.56;
+  private radius = 80;
+  private friction = 0.8;
 
   constructor(x: number, y: number, color: string) {
     this.x = Math.random() * 640;
-    this.y = 0;
+    this.y = Math.random() * 480;
     // this.x = x;
     // this.y = y;
     this.originX = x;
     this.originY = y;
     this.color = color;
     this.size = ROUGHNESS;
-    this.vx = Math.random() * 2 - 1;
-    this.vy = Math.random() * 2 - 1;
-    this.ease = 0.05;
+    this.vx = 1; // Math.random() * 2 - 1;
+    this.vy = 1; // Math.random() * 2 - 1;
   }
 
   draw(ctx: CanvasRenderingContext2D) {
@@ -34,10 +35,38 @@ class Particle {
     ctx.fillRect(this.x, this.y, this.size, this.size);
   }
 
-  update() {
-    this.x += (this.originX - this.x) * this.ease;
-    this.y += (this.originY - this.y) * this.ease;
+  update({ mouse }: { mouse: MouseData }) {
+    const mouseDx = mouse.x - this.x;
+    const mouseDy = mouse.y - this.y;
+    // this.x += this.vx;
+    const distance = Math.sqrt(mouseDx ** 2 + mouseDy ** 2);
+    if (distance < this.radius) {
+      // const force = -this.radius / distance;
+      const force = distance - this.radius;
+      const angle = Math.atan2(mouseDy, mouseDx);
+      const moveX = force * Math.cos(angle);
+      const moveY = force * Math.sin(angle);
+      // this.x += moveX;
+      // this.y += moveY;
+      this.vx = moveX;
+      this.vy = moveY;
+      // this.x = Math.random() * 640;
+      // this.y = Math.random() * 480;
+    }
+    // this.y += this.vy;
+    this.vx *= this.friction;
+    this.vy *= this.friction;
+    this.x += this.vx + (this.originX - this.x) * this.ease;
+    this.y += this.vy + (this.originY - this.y) * this.ease;
+    // this.y += (this.originY - this.y) * this.ease;
+    // this.x += (this.originX - this.x) * this.ease;
+    // this.y += (this.originY - this.y) * this.ease;
   }
+}
+
+interface MouseData {
+  x: number;
+  y: number;
 }
 
 class Effect {
@@ -45,6 +74,7 @@ class Effect {
   height: number;
   particles: Array<Particle>;
   img: HTMLImageElement;
+  mouse: MouseData;
 
   private pixelStep: number;
 
@@ -54,6 +84,11 @@ class Effect {
     this.particles = [];
     this.img = image;
     this.pixelStep = ROUGHNESS;
+    this.mouse = { x: 0, y: 0 };
+    window.addEventListener("mousemove", (event) => {
+      this.mouse.x = event.offsetX;
+      this.mouse.y = event.offsetY;
+    });
   }
 
   init(ctx: CanvasRenderingContext2D) {
@@ -62,6 +97,7 @@ class Effect {
     const y = this.height * 0.5 - this.img.height * 0.5;
     ctx.drawImage(this.img, x, y);
     const imageData = ctx.getImageData(0, 0, this.width, this.height);
+    console.log({ imageData });
     const pixels = imageData.data;
     for (let y = 0; y < this.height; y += this.pixelStep) {
       for (let x = 0; x < this.width; x += this.pixelStep) {
@@ -81,7 +117,8 @@ class Effect {
     // for (let i = 0; i < 100; i++) {
     //   const particle = new Particle(
     //     Math.random() * this.width,
-    //     Math.random() * this.height
+    //     Math.random() * this.height,
+    //     'black'
     //   );
     //   this.particles.push(particle);
     // }
@@ -92,7 +129,9 @@ class Effect {
   }
 
   update() {
-    this.particles.forEach((particle) => particle.update());
+    this.particles.forEach((particle) =>
+      particle.update({ mouse: this.mouse })
+    );
   }
 }
 
