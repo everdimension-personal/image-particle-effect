@@ -1,6 +1,6 @@
 import { useLayoutEffect, useRef } from "react";
-import imgSrc from "../assets/jurassic-park-logo-640.png";
 import invariant from "tiny-invariant";
+import imgSrc from "../assets/jurassic-park-logo-640.png";
 
 const ROUGHNESS = 3;
 
@@ -38,7 +38,6 @@ class Particle {
   update({ mouse }: { mouse: MouseData }) {
     const mouseDx = mouse.x - this.x;
     const mouseDy = mouse.y - this.y;
-    // this.x += this.vx;
     const distance = Math.sqrt(mouseDx ** 2 + mouseDy ** 2);
     if (distance < this.radius) {
       // const force = -this.radius / distance;
@@ -46,19 +45,13 @@ class Particle {
       const angle = Math.atan2(mouseDy, mouseDx);
       const moveX = force * Math.cos(angle);
       const moveY = force * Math.sin(angle);
-      // this.x += moveX;
-      // this.y += moveY;
       this.vx = moveX;
       this.vy = moveY;
-      // this.x = Math.random() * 640;
-      // this.y = Math.random() * 480;
     }
-    // this.y += this.vy;
     this.vx *= this.friction;
     this.vy *= this.friction;
     this.x += this.vx + (this.originX - this.x) * this.ease;
     this.y += this.vy + (this.originY - this.y) * this.ease;
-    // this.y += (this.originY - this.y) * this.ease;
     // this.x += (this.originX - this.x) * this.ease;
     // this.y += (this.originY - this.y) * this.ease;
   }
